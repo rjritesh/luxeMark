@@ -1,5 +1,5 @@
 import { Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface NavbarProps {
   currentPage: string;
@@ -8,6 +8,7 @@ interface NavbarProps {
 
 export function Navbar({ currentPage, setCurrentPage }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const navItems = [
     { name: 'Home', id: 'home' },
@@ -21,13 +22,26 @@ export function Navbar({ currentPage, setCurrentPage }: NavbarProps) {
   const handleNavClick = (id: string) => {
     setCurrentPage(id);
     setIsOpen(false);
-    window.scrollTo(0, 0);
+    const section = document.getElementById(id);
+    section?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Add sticky shadow on scroll
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-gold/20">
+    <nav
+      className={`fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-gold/20 transition-shadow ${
+        isScrolled ? 'shadow-lg' : ''
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
         <div className="flex items-center justify-between h-20">
+          {/* Logo */}
           <div
             className="flex items-center cursor-pointer group"
             onClick={() => handleNavClick('home')}
@@ -37,6 +51,7 @@ export function Navbar({ currentPage, setCurrentPage }: NavbarProps) {
             </div>
           </div>
 
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             {navItems.map((item) => (
               <button
@@ -53,15 +68,18 @@ export function Navbar({ currentPage, setCurrentPage }: NavbarProps) {
             ))}
           </div>
 
+          {/* Mobile Hamburger */}
           <button
-            className="md:hidden text-white"
+            className="md:hidden text-white z-50"
             onClick={() => setIsOpen(!isOpen)}
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
           >
             {isOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
       </div>
 
+      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-black border-t border-gold/20">
           <div className="px-6 py-8 space-y-6">
